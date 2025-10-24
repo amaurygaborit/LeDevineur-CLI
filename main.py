@@ -36,7 +36,8 @@ def main():
 
         # Créer toutes les combinaisons des variantes pour les clés nécessaires
         # Exemple: pour {Nom}{Prenom}, on combine chaque variante de Nom avec chaque variante de Prenom
-        listes_de_variantes = [infos_variantes[cle] for cle in cles_necessaires]
+        # Si la clé n'est pas trouvée, on utilise une liste contenant une chaîne vide [''] comme valeur par défaut
+        listes_de_variantes = [infos_variantes.get(cle, ['']) for cle in cles_necessaires]
 
         for combinaison in generer_variantes_casse.itertools.product(*listes_de_variantes):
             # Créer un dictionnaire pour le formatage
