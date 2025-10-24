@@ -9,7 +9,7 @@ def main():
         "Prenom": "Pierre",
         "AnneeNaissance": "1995",
         "Ville": "Paris",
-        "CodePostalCourt": "75"
+        "CodePostalCourt": "75",
     }
 
     # 2. Générer toutes les variantes pour chaque information
@@ -46,7 +46,7 @@ def main():
 
     # 5. Écrire le résultat dans un fichier
     with open("dictionnaire.txt", "w") as f:
-        for mdp in sorted(list(mots_de_passe_probables)):
+        for mdp in list(mots_de_passe_probables):
             f.write(mdp + "\n")
 
     print(f"{len(mots_de_passe_probables)} mots de passe générés dans dictionnaire.txt")
