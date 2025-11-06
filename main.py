@@ -1,8 +1,7 @@
 # Fichier principal : password_generator.py
 
-import generer_variantes_casse
+import generate_variants
 import data_loader
-import itertools
 from string import Formatter
 
 formatter = Formatter()
@@ -18,7 +17,7 @@ def main():
     infos_variantes = {}
     for cle, valeur in infos_perso.items():
         # Génère les variantes de casse (ex: marie, Marie, MARIE)
-        infos_variantes[cle] = generer_variantes_casse.generer_variantes_casse(valeur)
+        infos_variantes[cle] = generate_variants.generate_variants(valeur)
         # Ajoute la version brute si elle contient des chiffres/symboles (ex: dates, tél)
         if not valeur.isalpha():
              infos_variantes[cle].append(valeur)
@@ -45,7 +44,7 @@ def main():
         # Si la clé n'est pas trouvée, on utilise une liste contenant une chaîne vide [''] comme valeur par défaut
         listes_de_variantes = [infos_variantes.get(cle, ['']) for cle in cles_necessaires]
 
-        for combinaison in generer_variantes_casse.itertools.product(*listes_de_variantes):
+        for combinaison in generate_variants.itertools.product(*listes_de_variantes):
             # Créer un dictionnaire pour le formatage
             valeurs_a_formater = dict(zip(cles_necessaires, combinaison))
             mot_de_passe = pattern.format(**valeurs_a_formater)
