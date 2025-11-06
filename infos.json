@@ -1,0 +1,46 @@
+{
+  "__COMMENTAIRE__": "Remplissez les champs pertinents. Laissez vide ou supprimez ceux inutiles.",
+
+  "IDENTITE": "",
+  "Nom": "Dupont",
+  "Prenom": "Pierre",
+  "Surnom": "Pierrot",
+  "DateNaissance": "25081992",
+  "AnneeNaissance": "1992",
+  "DeptNaissance": "92",
+  "Telephone": "0612345678",
+
+  "LIEUX": "",
+  "VilleHabitation": "Lyon",
+  "CodePostal": "69000",
+  "Rue": "Gambetta",
+
+  "FAMILLE": "",
+  "ConjointPrenom": "Marie",
+  "ConjointDateNaissance": "12041990",
+  "DateMariage": "12062015",
+  "Enfant1Prenom": "Lucas",
+  "Enfant1DateNaissance": "10012020",
+  "Enfant2Prenom": "Chloe",
+  "Enfant2DateNaissance": "05032022",
+
+  "ANIMAUX": "",
+  "AnimalNom": "Rex",
+  "AnimalDate": "2018",
+
+  "TRAVAIL_ETUDES": "",
+  "Metier": "Infirmier",
+  "Societe": "HopitalNord",
+  "Ecole": "FacMedecine",
+  "Diplome": "Master",
+
+  "PASSIONS": "",
+  "EquipeSport": "OM",
+  "Sportif": "Zidane",
+  "FilmSerieCulte": "Matrix",
+  "HerosFictif": "Neo",
+  "ArtisteMusique": "Indochine",
+  "JeuVideo": "Zelda",
+  "MarqueVoiture": "Clio",
+  "PlatPrefere": "Pizza"
+}

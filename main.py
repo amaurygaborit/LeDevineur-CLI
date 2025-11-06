@@ -1,30 +1,36 @@
 # Fichier principal : password_generator.py
 
 import generer_variantes_casse
+import data_loader
+import itertools
+from string import Formatter
+
+formatter = Formatter()
 
 def main():
-    # 1. Collecter les informations (on verra la ligne de commande plus tard)
-    infos_perso = {
-        "Nom": "Dupont",
-        "Prenom": "Pierre",
-        "AnneeNaissance": "1995",
-        "Ville": "Paris",
-        "CodePostalCourt": "75",
-    }
+    # 1. Collecter les informations via le nouveau module
+    infos_perso = data_loader.charger_infos_json("infos.json")
+    if not infos_perso:
+        print("Aucune information chargée. Arrêt du programme.")
+        return
 
     # 2. Générer toutes les variantes pour chaque information
     infos_variantes = {}
     for cle, valeur in infos_perso.items():
+        # Génère les variantes de casse (ex: marie, Marie, MARIE)
         infos_variantes[cle] = generer_variantes_casse.generer_variantes_casse(valeur)
-        # On peut aussi ajouter la valeur brute (ex: 1995) si la casse n'a pas de sens
+        # Ajoute la version brute si elle contient des chiffres/symboles (ex: dates, tél)
         if not valeur.isalpha():
-            infos_variantes[cle].append(valeur)
+             infos_variantes[cle].append(valeur)
 
     # 3. Définir les patterns (pour commencer, en dur dans une liste)
     patterns = [
         "{Nom}{Prenom}{AnneeNaissance}",
         "{Prenom}.{Nom}",
         "{Ville}{CodePostalCourt}!",
+        "{Prenom}{Nom}",
+        "{Nom}{Prenom}",
+        "{Nom}.{Prenom}",
     ]
 
     # 4. Générer le dictionnaire de mots de passe
