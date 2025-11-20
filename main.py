@@ -1,18 +1,23 @@
-# Fichier principal : password_generator.py
-
 import generate_variants
 import data_loader
+import enrich_data
 from string import Formatter
 
 formatter = Formatter()
 
 def main():
-    # 1. Collecter les informations via le nouveau module
+    print("--- Début de la génération ---")
+
+    # ÉTAPE 1 : Charger les données brutes
     infos_perso = data_loader.charger_infos_json("infos.json")
     if not infos_perso:
-        print("Aucune information chargée. Arrêt du programme.")
         return
 
+    # ÉTAPE 2 : Enrichir les données (Générer 04 depuis 2004, Nov depuis 11, etc.)
+    infos_enrichies = enrich_data.enrichir_donnees(infos_perso)
+    
+    print(f"Données enrichies : {len(infos_perso)} champs -> {len(infos_enrichies)} champs.")
+    
     # 2. Générer toutes les variantes pour chaque information
     infos_variantes = {}
     for cle, valeur in infos_perso.items():
