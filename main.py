@@ -17,7 +17,7 @@ def main():
     infos_variantes = {}
     for cle, valeur in infos_perso.items():
         # Génère les variantes de casse (ex: marie, Marie, MARIE)
-        infos_variantes[cle] = generate_variants.generate_variants(valeur)
+        infos_variantes[cle] = generate_variants.generate_case_variants(valeur)
         # Ajoute la version brute si elle contient des chiffres/symboles (ex: dates, tél)
         if not valeur.isalpha():
              infos_variantes[cle].append(valeur)
