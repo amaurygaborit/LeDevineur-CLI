@@ -19,33 +19,46 @@ def generate_year_variants(annee):
         variantes.append(annee[2:])  # Deux derniers chiffres
     return variantes
 
+
 def generate_leet_variants(mot):
-    """Génère des variantes leet speak d'un mot."""
+    """
+    Génère toutes les variantes leet speak d'un mot en suivant la logique combinatoire.
+    Inclut également les variantes de casse pour chaque lettre.
+    """
+    if not mot:
+        return [""]
+
+    # Dictionnaire de substitution (caractères minuscules vers variantes)
     leet_map = {
-        'a': ['a', '4', '@'],
-        'e': ['e', '3'],
-        'i': ['i', '1', '!'],
-        'o': ['o', '0'],
-        's': ['s', '5', '$'],
-        't': ['t', '7'],
-        'l': ['l', '1'],
-        'g': ['g', '9'],
-        'b': ['b', '8']
+        'a': ['4', '@'],
+        'e': ['3'],
+        'i': ['1', '!'],
+        'o': ['0'],
+        's': ['5', '$'],
+        't': ['7'],
+        'l': ['1'],
+        'g': ['9'],
+        'b': ['8']
     }
-    
-    mot_lower = mot.lower()
-    variantes = []
-    
-    # Pour chaque caractère, on prend soit le caractère original, soit ses remplacements leet
-    options = []
-    for char in mot_lower:
-        if char in leet_map:
-            options.append(leet_map[char])
-        else:
-            options.append([char])
-    
-    # Génère toutes les combinaisons (limité à 100 pour éviter l'explosion combinatoire)
-    for combo in itertools.islice(itertools.product(*options), 100):
-        variantes.append("".join(combo))
-    
-    return variantes
+
+    # Liste qui contiendra les possibilités pour chaque position de caractère
+    options_par_position = []
+
+    for char in mot:
+        # 1. On part de la base : le caractère en minuscule et en majuscule
+        # On utilise un set pour dédoublonner automatiquement (ex: si char est '1', lower et upper sont pareils)
+        possibilites = {char, char.lower(), char.upper()}
+
+        # 2. Si une substitution leet existe pour ce caractère (en minuscule), on l'ajoute
+        if char.lower() in leet_map:
+            possibilites.update(leet_map[char.lower()])
+
+        options_par_position.append(list(possibilites))
+
+    # 3. Génération du produit cartésien (toutes les combinaisons possibles)
+    # C'est exactement la même logique que generate_case_variants
+    variants = set()
+    for combo in itertools.product(*options_par_position):
+        variants.add("".join(combo))
+
+    return list(variants)

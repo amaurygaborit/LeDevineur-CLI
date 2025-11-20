@@ -16,11 +16,24 @@ def main():
     # 2. Générer toutes les variantes pour chaque information
     infos_variantes = {}
     for cle, valeur in infos_perso.items():
-        # Génère les variantes de casse (ex: marie, Marie, MARIE)
-        infos_variantes[cle] = generate_variants.generate_case_variants(valeur)
-        # Ajoute la version brute si elle contient des chiffres/symboles (ex: dates, tél)
+        # On utilise un set pour dédoublonner automatiquement
+        # car generate_leet_variants génère aussi des variantes de casse simples
+        variantes_temp = set()
+
+        # A. Ajout des variantes de casse classiques (rapide)
+        variantes_temp.update(generate_variants.generate_case_variants(valeur))
+
+        # B. Ajout des variantes Leet Speak (plus lent, plus complet)
+        # Note : Comme la nouvelle fonction inclut la casse, elle va "recouvrir"
+        # les résultats de l'étape A, mais le set() va supprimer les doublons instantanément.
+        variantes_temp.update(generate_variants.generate_leet_variants(valeur))
+
+        # C. Gestion des dates/chiffres (inchangé)
         if not valeur.isalpha():
-             infos_variantes[cle].append(valeur)
+            variantes_temp.add(valeur)
+
+        # On convertit le set final en liste pour la suite du programme
+        infos_variantes[cle] = list(variantes_temp)
 
     # 3. Définir les patterns (pour commencer, en dur dans une liste)
     patterns = [
