@@ -19,26 +19,24 @@ def main():
     
     print(f"Données enrichies : {len(infos_perso)} champs -> {len(infos_enrichies)} champs.")
     
-    # 2. Générer toutes les variantes pour chaque information
+    # ÉTAPE 3 : Générer toutes les variantes pour chaque information
     infos_variantes = {}
-    for cle, valeur in infos_perso.items():
-        # On utilise un set pour dédoublonner automatiquement
-        # car generate_leet_variants génère aussi des variantes de casse simples
+    for cle, valeur in infos_enrichies.items():
         variantes_temp = set()
+        
+        # Important : s'assurer que la valeur est une string (car enrich_data peut renvoyer des ints convertis)
+        valeur_str = str(valeur)
 
-        # A. Ajout des variantes de casse classiques (rapide)
-        variantes_temp.update(generate_variants.generate_case_variants(valeur))
+        # A. Ajout des variantes de casse classiques
+        variantes_temp.update(generate_variants.generate_case_variants(valeur_str))
 
-        # B. Ajout des variantes Leet Speak (plus lent, plus complet)
-        # Note : Comme la nouvelle fonction inclut la casse, elle va "recouvrir"
-        # les résultats de l'étape A, mais le set() va supprimer les doublons instantanément.
-        variantes_temp.update(generate_variants.generate_leet_variants(valeur))
+        # B. Leet speak
+        variantes_temp.update(generate_variants.generate_leet_variants(valeur_str))
 
-        # C. Gestion des dates/chiffres (inchangé)
-        if not valeur.isalpha():
-            variantes_temp.add(valeur)
+        # C. Gestion des dates/chiffres
+        if not valeur_str.isalpha():
+            variantes_temp.add(valeur_str)
 
-        # On convertit le set final en liste pour la suite du programme
         infos_variantes[cle] = list(variantes_temp)
 
     # ÉTAPE 4 : Définir les patterns
