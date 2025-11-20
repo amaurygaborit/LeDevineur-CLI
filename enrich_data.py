@@ -26,10 +26,24 @@ def parser_date(date_str):
     """
     formats = [
         "%d%m%Y",      # 25081992
+        "%m%d%Y",      # 08251992
+        "%Y%d%m",      # 19922508
+        "%Y%m%d",      # 19920825
+
         "%d/%m/%Y",    # 25/08/1992
+        "%m/%d/%Y",    # 08/25/1992
+        "%Y/%d/%m",    # 1992/25/08
+        "%Y/%m/%d",    # 1992/08/25
+
         "%d-%m-%Y",    # 25-08-1992
+        "%m-%d-%Y",    # 08-25-1992
+        "%Y-%d-%m",    # 1992-25-08
         "%Y-%m-%d",    # 1992-08-25
-        "%d.%m.%Y"     # 25.08.1992
+
+        "%d.%m.%Y",    # 25.08.1992
+        "%m.%d.%Y",    # 08.25.1992
+        "%Y.%d.%m",    # 1992.25.08
+        "%Y.%m.%d",    # 1992.08.25
     ]
     
     for fmt in formats:
@@ -75,7 +89,7 @@ def enrichir_donnees(infos):
                 if variantes_mois:
                     nouvelles_infos[f"{base_key}MoisStr"] = variantes_mois[0] # ex: janvier
 
-    # Autres enrichissements possibles (ex: Département depuis code postal)
+    # Autres enrichissements (Département depuis code postal)
     if "CodePostal" in infos and len(infos["CodePostal"]) >= 2:
         nouvelles_infos["Departement"] = infos["CodePostal"][:2]
 
