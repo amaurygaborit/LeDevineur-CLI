@@ -31,11 +31,11 @@ def main():
         variantes_temp.update(generate_variants.generate_case_variants(valeur_str))
 
         # B. Leet speak
-        variantes_temp.update(generate_variants.generate_leet_variants(valeur_str, max_subs=4))
+        variantes_temp.update(generate_variants.generate_leet_variants(valeur_str, max_subs=3))
 
         # C. Gestion des dates/chiffres
         if not valeur_str.isalpha():
-            variantes_temp.add(valeur_str)
+            variantes_temp.update(generate_variants.generate_year_variants(valeur_str))
 
         infos_variantes[cle] = list(variantes_temp)
 
