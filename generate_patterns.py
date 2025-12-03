@@ -4,7 +4,7 @@ def generer_patterns_basiques():
         # Patterns simples
         "{Nom}",
         "{Prenom}",
-        "{Ville}",
+        "{VilleHabitation}",
         
         # Avec année
         "{Nom}{AnneeNaissance}",
@@ -21,16 +21,16 @@ def generer_patterns_basiques():
         "{Nom}.{Prenom}",
         "{Nom}_{Prenom}",
         
-        # Avec ville
-        "{Prenom}{Ville}",
-        "{Nom}{Ville}",
-        "{Ville}{AnneeNaissance}",
-        "{Prenom}{Ville}{AnneeNaissance}",
+        # Avec VilleHabitation
+        "{Prenom}{VilleHabitation}",
+        "{Nom}{VilleHabitation}",
+        "{VilleHabitation}{AnneeNaissance}",
+        "{Prenom}{VilleHabitation}{AnneeNaissance}",
         
         # Avec code postal
         "{Prenom}{CodePostal}",
         "{Nom}{CodePostal}",
-        "{Ville}{CodePostal}",
+        "{VilleHabitation}{CodePostal}",
         
         # Avec caractères spéciaux courants
         "{Prenom}!",
