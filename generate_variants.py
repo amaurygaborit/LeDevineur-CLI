@@ -20,7 +20,7 @@ def generate_year_variants(annee):
     return variantes
 
 
-def generate_leet_variants(mot):
+def generate_leet_variants(mot, max_subs=3):
     """
     Génère toutes les variantes leet speak d'un mot en suivant la logique combinatoire.
     Inclut également les variantes de casse pour chaque lettre.
@@ -46,24 +46,35 @@ def generate_leet_variants(mot):
         'y': ['j', '7']
     }
 
-    # Liste qui contiendra les possibilités pour chaque position de caractère
-    options_par_position = []
+    # 1. On inclut toujours le mot original
+    results = {mot}
 
-    for char in mot:
-        # 1. On part de la base : le caractère en minuscule et en majuscule
-        # On utilise un set pour dédoublonner automatiquement (ex: si char est '1', lower et upper sont pareils)
-        possibilites = {char, char.lower(), char.upper()}
+    # 2. Identification des positions modifiables (où une variante existe)
+    indices_modifiables = [i for i, char in enumerate(mot) if char.lower() in leet_map]
 
-        # 2. Si une substitution leet existe pour ce caractère (en minuscule), on l'ajoute
-        if char.lower() in leet_map:
-            possibilites.update(leet_map[char.lower()])
+    # Si le mot est court (ex: "Paris"), on peut se permettre plus de substitutions
+    # Si le mot est long ("Saintetienne"), on garde la limite stricte de 3
+    limit_reelle = min(len(indices_modifiables), max_subs)
 
-        options_par_position.append(list(possibilites))
+    # 3. Boucle sur le nombre de substitutions (de 1 à max_subs)
+    # C'est ici que l'optimisation opère : on ne change que 'r' lettres à la fois
+    for r in range(1, limit_reelle + 1):
 
-    # 3. Génération du produit cartésien (toutes les combinaisons possibles)
-    # C'est exactement la même logique que generate_case_variants
-    variants = set()
-    for combo in itertools.product(*options_par_position):
-        variants.add("".join(combo))
+        # On choisit QUELLES positions modifier (ex: positions 0 et 4)
+        for indices_choisis in itertools.combinations(indices_modifiables, r):
 
-    return list(variants)
+            # On prépare les variantes UNIQUEMENT pour ces positions
+            replacements_lists = []
+            for idx in indices_choisis:
+                char_original = mot[idx].lower()
+                replacements_lists.append(leet_map[char_original])
+
+            # Produit cartésien limité aux positions choisies (très rapide)
+            for combo in itertools.product(*replacements_lists):
+                mot_liste = list(mot)  # Copie modifiable
+                for i, position_a_changer in enumerate(indices_choisis):
+                    mot_liste[position_a_changer] = combo[i]
+
+                results.add("".join(mot_liste))
+
+    return list(results)
