@@ -30,15 +30,20 @@ def generate_leet_variants(mot):
 
     # Dictionnaire de substitution (caractères minuscules vers variantes)
     leet_map = {
-        'a': ['4', '@'],
-        'e': ['3'],
-        'i': ['1', '!'],
-        'o': ['0'],
-        's': ['5', '$'],
-        't': ['7'],
-        'l': ['1'],
-        'g': ['9'],
-        'b': ['8']
+        'a': ['4', '@', '^'],
+        'b': ['8'],
+        'c': ['(', '<', '{'],
+        'e': ['3', '&', '€'],
+        'g': ['9', '6'],
+        'h': ['#'],
+        'i': ['1', '!', '|'],
+        'l': ['1', '|', '!'],
+        'o': ['0', '*'],
+        's': ['5', '$', 'z'],
+        't': ['7', '+'],
+        'z': ['2', '%'],
+        'x': ['*'],
+        'y': ['j', '7']
     }
 
     # Liste qui contiendra les possibilités pour chaque position de caractère
