@@ -46,8 +46,15 @@ def generate_leet_variants(mot, max_subs=3):
         'y': ['j', '7']
     }
 
-    # 1. On inclut toujours le mot original
-    results = {mot}
+    # 1. Préparation des bases de travail
+    # On travaille sur le mot original ET sur sa version Capitalisée si pertinent
+    bases_a_traiter = {mot}
+    if len(mot) > 1:
+        bases_a_traiter.add(mot.lower())  # Ajoute "paris"
+        bases_a_traiter.add(mot.title())  # Ajoute "Paris"
+
+    # On initialise les résultats avec ces bases (ex: {'paris', 'Paris'})
+    results = set(bases_a_traiter)
 
     # 2. Identification des positions modifiables (où une variante existe)
     indices_modifiables = [i for i, char in enumerate(mot) if char.lower() in leet_map]
@@ -71,10 +78,12 @@ def generate_leet_variants(mot, max_subs=3):
 
             # Produit cartésien limité aux positions choisies (très rapide)
             for combo in itertools.product(*replacements_lists):
-                mot_liste = list(mot)  # Copie modifiable
-                for i, position_a_changer in enumerate(indices_choisis):
-                    mot_liste[position_a_changer] = combo[i]
+                for base in bases_a_traiter:
+                    mot_liste = list(base)  # On prend la base courante (ex: "Paris")
 
-                results.add("".join(mot_liste))
+                    for i, position_a_changer in enumerate(indices_choisis):
+                        mot_liste[position_a_changer] = combo[i]
+
+                    results.add("".join(mot_liste))
 
     return list(results)
