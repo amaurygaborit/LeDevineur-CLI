@@ -1,0 +1,27 @@
+# --- STRUCTURES DE MOTS DE PASSE ---
+# Chaque ligne définit un ORDRE d'informations.
+# Les séparateurs seront injectés automatiquement par le programme.
+
+# Identité simple
+Prenom, Nom
+Nom, Prenom
+
+# Identité + Dates (Le plus courant)
+Prenom, DateNaissance
+Nom, DateNaissance
+Surnom, DateNaissance
+Prenom, Nom, DateNaissance
+Nom, Prenom, DateNaissance
+
+# Identité + Lieux
+Prenom, VilleHabitation
+Nom, VilleHabitation
+Prenom, Departement
+
+# Famille (Si dispo)
+Enfant1Prenom, Enfant1DateNaissance
+ConjointPrenom, DateMariage
+
+# Passions
+Sportif, Numero
+AnimalNom, AnimalDate

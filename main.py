@@ -2,73 +2,118 @@ import data_loader
 import enrich_data
 import generate_variants
 import generate_patterns
-from string import Formatter
+import itertools
 
-formatter = Formatter()
+# --- CONFIGURATION ---
+CONFIG = {
+    # Quels séparateurs tester entre les blocs ?
+    "SEPARATEURS": ["", ".", "-", "_", "@"], 
+    
+    # Configuration des variantes
+    "NIVEAU_LEET": 1,
+    "MAX_SUBS_LEET": 2,
+    "MAX_CASSE_BRUTEFORCE": 8
+}
+
+def construire_groupes_de_donnees(infos_enrichies, infos_brutes_keys):
+    """
+    Associe chaque clé enrichie à sa clé parente brute.
+    Ex: Si la clé brute est 'DateNaissance', on veut associer :
+        - La valeur brute '25/08/1992'
+        - '1992' (NaissanceAnnee)
+        - '92' (NaissanceAnneeCourt)
+        - '25' (NaissanceJour)
+    """
+    groupes = {}
+
+    # 1. On initialise les groupes avec les clés brutes du JSON
+    for key in infos_brutes_keys:
+        groupes[key] = set()
+
+    # 2. On parcourt les infos enrichies pour les ranger
+    for key_enrichie, valeur in infos_enrichies.items():
+        # On essaie de trouver à quelle clé brute cela appartient
+        # Ex: 'NaissanceAnnee' appartient à 'DateNaissance'
+        # Ex: 'Prenom' appartient à 'Prenom'
+        
+        parent_trouve = None
+        
+        # Cas simple : c'est une clé brute directe (ex: 'Prenom')
+        if key_enrichie in groupes:
+            parent_trouve = key_enrichie
+            
+        # Cas dérivé : c'est une sous-clé (ex: 'NaissanceAnnee' vient de 'DateNaissance')
+        else:
+            # On cherche quel préfixe correspond
+            # Astuce : enrich_data enlève 'Date' du nom. 
+            # Donc 'DateNaissance' devient prefixe 'Naissance'
+            for key_brute in groupes.keys():
+                prefixe_attendu = key_brute.replace("Date", "")
+                if key_enrichie.startswith(prefixe_attendu):
+                    parent_trouve = key_brute
+                    break
+        
+        # Si on a trouvé le parent, on génère les variantes et on ajoute
+        if parent_trouve:
+            variantes = generate_variants.generer_toutes_variantes(
+                valeur, 
+                niveau_leet=CONFIG["NIVEAU_LEET"], 
+                max_subs_leet=CONFIG["MAX_SUBS_LEET"],
+                max_bruteforce=CONFIG["MAX_CASSE_BRUTEFORCE"]
+            )
+            groupes[parent_trouve].update(variantes)
+
+    # Conversion en listes pour itertools
+    return {k: list(v) for k, v in groupes.items() if v}
 
 def main():
-    print("--- Début de la génération ---")
+    print("--- 1. Chargement ---")
+    infos_brutes = data_loader.charger_infos_json("infos.json")
+    if not infos_brutes: return
 
-    # ÉTAPE 1 : Charger les données brutes
-    infos_perso = data_loader.charger_infos_json("infos.json")
-    if not infos_perso:
-        return
-
-    # ÉTAPE 2 : Enrichir les données (Générer 04 depuis 2004, Nov depuis 11, etc.)
-    infos_enrichies = enrich_data.enrichir_donnees(infos_perso)
+    print("--- 2. Enrichissement ---")
+    infos_enrichies = enrich_data.enrichir_donnees(infos_brutes)
     
-    print(f"Données enrichies : {len(infos_perso)} champs -> {len(infos_enrichies)} champs.")
+    print("--- 3. Groupement et Variantes ---")
+    # C'est l'étape cruciale : on regroupe tout ce qui concerne "DateNaissance" ensemble
+    # Dictionnaire : {'DateNaissance': ['1992', '92', 'nov', '25081992'...], 'Prenom': ['Pierre', 'P1erre']...}
+    pool_donnees = construire_groupes_de_donnees(infos_enrichies, infos_brutes.keys())
     
-    # ÉTAPE 3 : Générer toutes les variantes pour chaque information
-    infos_variantes = {}
-    for cle, valeur in infos_enrichies.items():
-        variantes_temp = set()
+    print("--- 4. Chargement des Structures ---")
+    structures = generate_patterns.charger_structures_patterns("patterns.txt")
+    print(f"   > {len(structures)} structures chargées.")
+
+    print("--- 5. Génération Finale ---")
+    mots_de_passe_finaux = set()
+    separateurs = CONFIG["SEPARATEURS"]
+
+    for structure in structures:
+        # structure ressemble à ['Prenom', 'DateNaissance']
         
-        # Important : s'assurer que la valeur est une string (car enrich_data peut renvoyer des ints convertis)
-        valeur_str = str(valeur)
-
-        # A. Ajout des variantes de casse classiques
-        variantes_temp.update(generate_variants.generate_case_variants(valeur_str))
-
-        # B. Leet speak
-        variantes_temp.update(generate_variants.generate_leet_variants(valeur_str, max_subs=3))
-
-        # C. Gestion des dates/chiffres
-        if not valeur_str.isalpha():
-            variantes_temp.update(generate_variants.generate_year_variants(valeur_str))
-
-        infos_variantes[cle] = list(variantes_temp)
-
-    # ÉTAPE 4 : Définir les patterns
-    patterns = generate_patterns.generer_patterns_basiques()
-
-    # ÉTAPE 5 : Génération des mots de passe (Moteur de combinaison)
-    mots_de_passe_probables = set()
-
-    for pattern in patterns:
-        # Récupération des clés du pattern
-        cles_necessaires = [fn for _, fn, _, _ in formatter.parse(pattern) if fn is not None]
-        
-        # Vérification que toutes les clés existent dans nos données enrichies
-        # Si une clé manque (ex: pas de Surnom dans le JSON), on ignore ce pattern
-        if all(key in infos_variantes for key in cles_necessaires):
-            listes_de_variantes = [infos_variantes[key] for key in cles_necessaires]
+        # Vérification : est-ce qu'on a des données pour chaque élément demandé ?
+        if all(element in pool_donnees for element in structure):
             
-            # Produit cartésien
-            for combinaison in generate_variants.itertools.product(*listes_de_variantes):
-                valeurs_a_formater = dict(zip(cles_necessaires, combinaison))
-                try:
-                    mot_de_passe = pattern.format(**valeurs_a_formater)
-                    mots_de_passe_probables.add(mot_de_passe)
-                except KeyError:
-                    pass # Sécurité
+            # On récupère les listes de variantes pour chaque bloc
+            # ex: listes_blocs = [ ['Pierre', 'pierre'], ['1992', '92', 'nov'] ]
+            listes_blocs = [pool_donnees[element] for element in structure]
+            
+            # Produit cartésien des contenus (Pierre + 1992, Pierre + 92...)
+            for combinaison in itertools.product(*listes_blocs):
+                
+                # Pour chaque combinaison de mots, on teste tous les séparateurs
+                # On applique le MEME séparateur partout (souvent le cas) 
+                # ou on pourrait faire plus complexe, mais restons simple :
+                for sep in separateurs:
+                    mdp = sep.join(combinaison)
+                    mots_de_passe_finaux.add(mdp)
 
-    # ÉTAPE 6 : Écriture fichier
-    with open("dictionnaire.txt", "w") as f:
-        for mdp in sorted(list(mots_de_passe_probables)):
+    # Écriture
+    fichier_sortie = "dictionnaire.txt"
+    with open(fichier_sortie, "w", encoding="utf-8") as f:
+        for mdp in sorted(list(mots_de_passe_finaux)):
             f.write(mdp + "\n")
 
-    print(f"Succès : {len(mots_de_passe_probables)} mots de passe générés dans dictionnaire.txt")
+    print(f"[SUCCÈS] {len(mots_de_passe_finaux)} mots de passe générés dans {fichier_sortie}")
 
 if __name__ == "__main__":
     main()
