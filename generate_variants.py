@@ -1,118 +1,192 @@
 import itertools
+from datetime import datetime
 
-def generate_case_variants(mot, max_bruteforce=5):
-    """
-    Génère les variantes de casse.
-    - Mots courts (<= 14 chars) : Brute force intelligent (toutes combinaisons maj/min).
-    - Mots longs (> 14 chars) : Variantes classiques uniquement pour la performance.
-    """
-    if not mot: return set()
-    
-    # 1. Variantes sémantiques de base (toujours incluses)
-    variantes = {mot, mot.lower(), mot.upper(), mot.title(), mot.swapcase()}
-    
-    # 2. Brute force sur la casse pour les mots raisonnables
-    # Limite à 12-14 chars car 2^14 = 16 384 combinaisons, ce qui reste gérable.
-    if len(mot) <= max_bruteforce: 
-        # Produit cartésien (ex: 'a' -> ['a', 'A'])
-        options = [(c.lower(), c.upper()) if c.isalpha() else (c,) for c in mot]
-        for combo in itertools.product(*options):
-            variantes.add("".join(combo))
-            
-    return variantes
+# --- 1. CONFIGURATION & DONNÉES ---
 
-def generate_leet_variants(mot, niveau=1, max_subs=2):
+def get_leet_map(niveau):
     """
-    Génère le Leet Speak avec contrôle de la complexité.
-    
-    Args:
-        mot (str): Le mot à transformer.
-        niveau (int): 1 = substitutions visuelles simples (e->3), 2 = symboles complexes (a->@).
-        max_subs (int): Nombre maximum de caractères à changer dans le mot (ex: 2).
+    Retourne le dictionnaire de substitution selon le niveau.
     """
-    if not mot or mot.isdigit(): 
-        return {mot}
-
-    # --- NIVEAU 1 : Substitutions courantes (Chiffres) ---
-    leet_map = {
-        'a': ['4'], 
-        'e': ['3'], 
-        'i': ['1'], 
-        'o': ['0'], 
-        's': ['5'], 
-        't': ['7'],
-        'b': ['8'],
-        'g': ['9', '6'],
-        'z': ['2']
+    # Niveau 1 : Substitutions visuelles évidentes et très courantes
+    map_leet = {
+        'a': '4',
+        'e': '3',
+        'i': '1',
+        'o': '0'
     }
     
-    # --- NIVEAU 2 : Substitutions complexes (Symboles) ---
-    if niveau > 1:
-        leet_map['a'].extend(['@', '^'])
-        leet_map['e'].extend(['&', '€'])
-        leet_map['i'].extend(['!', '|', 'l'])
-        leet_map['l'] = ['1', '|', '!']
-        leet_map['s'].extend(['$', 'z', 'Z'])
-        leet_map['t'].extend(['+'])
-        leet_map['o'].extend(['*'])
-        leet_map['c'] = ['(', '<', 'k']
-        leet_map['k'] = ['c']
-        leet_map['x'] = ['*']
-        leet_map['y'] = ['j', '7']
+    # Niveau 2 : Substitutions "Gamer" / étendues
+    if niveau >= 2:
+        map_leet.update({
+            's': '5',
+            't': '7',
+            'b': '8',
+            'g': '6',
+            'l': '1',
+            'z': '2'
+        })
+        
+    return map_leet
 
-    # On ne garde que les lettres présentes dans le mot qui ont une substitution
-    indices = [i for i, c in enumerate(mot) if c.lower() in leet_map]
+def obtenir_mois_texte(mois_int):
+    """Retourne une liste de variantes textuelles pour un mois."""
+    mois_data = {
+        1: ["janvier", "janv", "jan"], 2: ["fevrier", "fev", "feb"],
+        3: ["mars", "mar"], 4: ["avril", "avr", "apr"],
+        5: ["mai", "may"], 6: ["juin", "jun"],
+        7: ["juillet", "juil", "jul"], 8: ["aout", "aug"],
+        9: ["septembre", "sept", "sep"], 10: ["octobre", "oct"],
+        11: ["novembre", "nov"], 12: ["decembre", "dec"]
+    }
+    return mois_data.get(int(mois_int), [])
+
+def parser_date(date_str):
+    """Essaie de convertir une chaîne en objet datetime."""
+    formats = ["%d/%m/%Y", "%Y", "%d-%m-%Y", "%d.%m.%Y"]
+    for fmt in formats:
+        try:
+            return datetime.strptime(date_str, fmt)
+        except ValueError:
+            continue
+    return None
+
+# --- 2. MOTEURS DE GÉNÉRATION (Leet & Casse) ---
+
+def appliquer_leet_speak(mots_base, config):
+    """
+    Génère des variantes Leet en respectant:
+    - NIVEAU_LEET : Quels caractères on change.
+    - MAX_LEET : Combien de caractères maximum on change dans un seul mot.
+    """
+    # Récupération config avec valeurs par défaut
+    niveau = config.get("NIVEAU_LEET", 1)
     
-    if not indices:
-        return {mot}
-
-    variantes = {mot}
+    # On cherche "MAX_LEET", sinon on regarde "MAX_SUBS_LEET" (compatibilité), sinon 2 par défaut
+    max_changes = config.get("MAX_LEET", config.get("MAX_SUBS_LEET", 2))
     
-    # On limite le nombre de substitutions : on ne change pas plus de 'max_subs' lettres
-    # Si le mot est très court (ex: "bob"), on peut tout changer. 
-    limit_reelle = min(len(indices), max_subs)
+    if max_changes == 0:
+        return set(mots_base)
 
-    # Boucle de 1 à max_subs changements
-    for r in range(1, limit_reelle + 1):
-        # On choisit QUELLES positions modifier
-        for locs in itertools.combinations(indices, r):
-            options_list = []
-            for i in locs:
-                char_base = mot[i].lower()
-                options_list.append(leet_map[char_base])
-            
-            # On applique les substitutions aux positions choisies
-            for replacements in itertools.product(*options_list):
-                temp_list = list(mot)
-                for idx_tuple, char_remplacement in zip(enumerate(locs), replacements):
-                    position_reelle = idx_tuple[1]
-                    temp_list[position_reelle] = char_remplacement
-                variantes.add("".join(temp_list))
+    leet_map = get_leet_map(niveau)
+    resultats = set(mots_base) # On garde toujours les originaux
+
+    for mot in mots_base:
+        if not mot: continue
+        
+        # Le Leet s'applique généralement sur des minuscules pour la correspondance
+        mot_lower = mot.lower() 
+        
+        # 1. Identifier les index modifiables (ex: où sont les 'a', les 'e'...)
+        indices_possibles = [
+            (i, c) for i, c in enumerate(mot_lower) 
+            if c in leet_map
+        ]
+        
+        if not indices_possibles:
+            continue
+
+        # 2. On limite le nombre de changements à MAX_LEET
+        limit = min(len(indices_possibles), max_changes)
+        
+        # 3. Génération combinatoire : de 1 changement jusqu'à 'limit' changements
+        for r in range(1, limit + 1):
+            for combo in itertools.combinations(indices_possibles, r):
+                # combo est une liste de tuples (index, char_original)
+                mot_liste = list(mot) # On repart du mot original (pour garder la casse d'origine si mixte)
                 
-    return variantes
+                for index, char_original in combo:
+                    # On remplace par le caractère Leet
+                    mot_liste[index] = leet_map[char_original]
+                
+                resultats.add("".join(mot_liste))
+                
+    return resultats
 
-def generer_toutes_variantes(valeur, niveau_leet=1, max_subs_leet=2, max_bruteforce=5):
+def appliquer_casse_controllee(mots_base, config):
     """
-    Fonction Façade : Appelle les sous-fonctions avec les bons paramètres.
+    Génère des variantes de casse en respectant MAX_CASSE.
+    Évite de générer 2^N variantes pour les mots longs.
     """
-    valeur_str = str(valeur)
+    # On cherche "MAX_CASSE", sinon "MAX_CASSE_BRUTEFORCE", sinon 3 par défaut
+    max_casse = config.get("MAX_CASSE", config.get("MAX_CASSE_BRUTEFORCE", 3))
+    
     resultats = set()
 
-    # 1. Base
-    resultats.add(valeur_str)
+    for mot in mots_base:
+        if not mot: continue
+        
+        # 1. Les bases incontournables (comptent pour 0 "coût" de calcul)
+        resultats.add(mot)
+        resultats.add(mot.lower())
+        resultats.add(mot.upper())
+        resultats.add(mot.title())
 
-    # 2. Pas de variantes sur les nombres purs (Années, Dept) pour éviter le bruit
-    if valeur_str.isdigit():
-        return list(resultats)
+        if max_casse == 0:
+            continue
 
-    # 3. Casse (Toujours actif)
-    resultats.update(generate_case_variants(valeur_str, max_bruteforce))
+        # 2. Variations fines (MiXEd cAsE)
+        mot_lower = mot.lower()
+        indices = list(range(len(mot_lower)))
+        
+        # On ne va pas changer plus de lettres que le mot n'en contient
+        limit = min(len(mot_lower), max_casse)
+        
+        # On génère des variantes en mettant en majuscule 1 à N lettres
+        for r in range(1, limit + 1):
+            for indices_maj in itertools.combinations(indices, r):
+                temp_list = list(mot_lower)
+                for i in indices_maj:
+                    temp_list[i] = temp_list[i].upper()
+                resultats.add("".join(temp_list))
+                
+    return resultats
 
-    # 4. Leet Speak (Configurable)
-    # On l'applique sur la version lowercase et Title pour avoir 'p1erre' et 'P1erre'
-    bases_pour_leet = {valeur_str.lower(), valeur_str.title()}
+# --- 3. ORCHESTRATEUR PRINCIPAL ---
+
+def generer_toutes_variantes(valeur, config):
+    """
+    Pipeline : 
+    1. Structure (Date vs Texte)
+    2. Leet Speak (Injection de chiffres/symboles)
+    3. Casse (Variation Maj/Min sur le résultat du Leet)
+    """
+    valeur_str = str(valeur)
+    date_obj = parser_date(valeur_str)
     
-    for base in bases_pour_leet:
-        resultats.update(generate_leet_variants(base, niveau=niveau_leet, max_subs=max_subs_leet))
+    bases = set()
 
-    return list(resultats)
+    # ÉTAPE A : Génération des bases
+    if not date_obj:
+        # C'est du texte simple
+        bases.add(valeur_str)
+    else:
+        # C'est une date -> structures
+        separateurs = config.get("SEPARATEURS_DATE", [""])
+        j = f"{date_obj.day:02d}"
+        a = str(date_obj.year)
+        a_court = date_obj.strftime("%y")
+        # On mixe le mois chiffre ET les mois textes
+        toutes_formes_mois = [f"{date_obj.month:02d}"] + obtenir_mois_texte(date_obj.month)
+
+        for m_courant in toutes_formes_mois:
+            structures_dates = [
+                [j, m_courant, a],       # 25 08 1995
+                [j, m_courant, a_court], # 25 08 95
+                [a, m_courant, j],       # 1995 08 25
+                [a_court, m_courant, j], # 95 08 25
+                [j, m_courant],          # 25 08
+                [m_courant, j],          # 08 25
+            ]
+            for structure in structures_dates:
+                for sep in separateurs:
+                    bases.add(sep.join(structure))
+
+    # ÉTAPE B : Leet Speak (Contrôlé par NIVEAU_LEET et MAX_LEET)
+    # Exemple : "Maison" -> "Ma1son", "M4ison"...
+    variantes_leet = appliquer_leet_speak(bases, config)
+    
+    # ÉTAPE C : Casse (Contrôlé par MAX_CASSE)
+    # Exemple : "Ma1son" -> "mA1son", "MA1SON"...
+    resultats_finaux = appliquer_casse_controllee(variantes_leet, config)
+
+    return list(resultats_finaux)

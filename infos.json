@@ -5,8 +5,7 @@
   "Nom": "Dupont",
   "Prenom": "Pierre",
   "Surnom": "Pierrot",
-  "DateNaissance": "25081995",
-  "AnneeNaissance": "1995",
+  "DateNaissance": "25/08/1995",
   "DeptNaissance": "92",
   "Telephone": "0612345678",
 
@@ -17,16 +16,16 @@
 
   "FAMILLE": "",
   "ConjointPrenom": "Marie",
-  "ConjointDateNaissance": "12041990",
-  "DateMariage": "12062015",
+  "ConjointDateNaissance": "12/04/1990",
+  "DateMariage": "12/06/2015",
   "Enfant1Prenom": "Lucas",
-  "Enfant1DateNaissance": "10012020",
+  "Enfant1DateNaissance": "10/01/2020",
   "Enfant2Prenom": "Chloe",
-  "Enfant2DateNaissance": "05032022",
+  "Enfant2DateNaissance": "05/03/2022",
 
   "ANIMAUX": "",
   "AnimalNom": "Rex",
-  "AnimalDate": "2018",
+  "AnimalDateNaissance": "11/09/2001",
 
   "TRAVAIL_ETUDES": "",
   "Metier": "Infirmier",

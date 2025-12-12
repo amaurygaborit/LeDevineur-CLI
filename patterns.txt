@@ -2,6 +2,8 @@
 # Chaque ligne définit un ORDRE d'informations.
 # Les séparateurs seront injectés automatiquement par le programme.
 
+NaissanceJour, NaissanceMois, NaissanceAnnee
+
 # Identité simple
 Prenom, Nom
 Nom, Prenom
