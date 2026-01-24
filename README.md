@@ -1,11 +1,3 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>LeDevineur-CLI - Documentation</title>
-</head>
-<body>
-
     <h1>🔐 LeDevineur-CLI</h1>
 
     <p>
@@ -157,6 +149,3 @@ AnimalNom, DeptNaissance</code></pre>
     </ul>
 
     <p><em>Ce projet est destiné uniquement à des fins éducatives et de test d'intrusion autorisé.</em></p>
-
-</body>
-</html>
