@@ -2,26 +2,73 @@
 # Chaque ligne définit un ORDRE d'informations.
 # Les séparateurs seront injectés automatiquement par le programme.
 
-# Identité simple
+# --- IDENTITÉ (BASIQUE) ---
 Prenom, Nom
 Nom, Prenom
-
-# Identité + Dates (Le plus courant)
-# Note : Grâce au correctif, 'DateNaissance' inclut désormais l'année seule (ex: Pierre1995)
+Surnom, Nom
+Surnom, DateNaissance
 Prenom, DateNaissance
 Nom, DateNaissance
-Surnom, DateNaissance
-Prenom, Nom, DateNaissance
-Nom, Prenom, DateNaissance
 
-# Identité + Lieux
-Prenom, VilleHabitation
-Nom, VilleHabitation
+# --- IDENTITÉ (REVERSE) ---
+DateNaissance, Prenom
+DateNaissance, Nom
+DateNaissance, Surnom
+
+# --- GÉOGRAPHIE ---
+# Ex: Pierre42000, Dupont92
+Prenom, CodePostal
+Nom, CodePostal
+Surnom, CodePostal
 Prenom, DeptNaissance
+Nom, DeptNaissance
+Surnom, DeptNaissance
+VilleHabitation, CodePostal
 
-# Famille (Si dispo)
-Enfant1Prenom, Enfant1DateNaissance
+# --- FAMILLE (CONJOINT & MARIAGE) ---
+# Ex: Marie2015, Mariage1206
 ConjointPrenom, DateMariage
+ConjointPrenom, ConjointDateNaissance
+DateMariage, ConjointPrenom
+ConjointPrenom, DateNaissance
 
-# Passions
+# --- FAMILLE (ENFANTS) ---
+# Ex: Lucas2020, Chloe05
+Enfant1Prenom, Enfant1DateNaissance
+Enfant2Prenom, Enfant2DateNaissance
+Enfant1Prenom, DateNaissance
+Enfant2Prenom, DateNaissance
+# Combinaison des prénoms enfants (Ex: LucasChloe)
+Enfant1Prenom, Enfant2Prenom
+
+# --- ANIMAUX (TRÈS FRÉQUENT) ---
+# Ex: Rex2001, Rex92
 AnimalNom, AnimalDateNaissance
+AnimalNom, DateNaissance
+AnimalNom, DeptNaissance
+AnimalNom, CodePostal
+
+# --- PASSIONS & LOISIRS ---
+# Ex: OM92, Zidane1995, Matrix42
+EquipeSport, DeptNaissance
+EquipeSport, DateNaissance
+Sportif, DateNaissance
+MarqueVoiture, DeptNaissance
+MarqueVoiture, DateNaissance
+ArtisteMusique, DateNaissance
+HerosFictif, DateNaissance
+JeuVideo, DateNaissance
+
+# --- TRAVAIL & ÉTUDES ---
+# Ex: HopitalNord92, Infirmier1995
+Societe, DateNaissance
+Metier, DateNaissance
+Metier, DeptNaissance
+Ecole, DateNaissance
+Diplome, DateNaissance
+
+# --- COMPLEXE (3 BLOCS) ---
+# Ex: Pierre.Dupont.92
+Prenom, Nom, DeptNaissance
+Prenom, Nom, DateNaissance
+Prenom, Nom, CodePostal
