@@ -176,6 +176,10 @@ def generer_toutes_variantes(valeur, config):
                 [a_court, m_courant, j], # 95 08 25
                 [j, m_courant],          # 25 08
                 [m_courant, j],          # 08 25
+                
+                # Permet de générer "Pierre1995" avec le pattern Prenom, DateNaissance
+                [a],       # 1995
+                [a_court]  # 95
             ]
             for structure in structures_dates:
                 for sep in separateurs:

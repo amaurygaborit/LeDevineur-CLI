@@ -2,13 +2,12 @@
 # Chaque ligne définit un ORDRE d'informations.
 # Les séparateurs seront injectés automatiquement par le programme.
 
-NaissanceJour, NaissanceMois, NaissanceAnnee
-
 # Identité simple
 Prenom, Nom
 Nom, Prenom
 
 # Identité + Dates (Le plus courant)
+# Note : Grâce au correctif, 'DateNaissance' inclut désormais l'année seule (ex: Pierre1995)
 Prenom, DateNaissance
 Nom, DateNaissance
 Surnom, DateNaissance
@@ -18,12 +17,11 @@ Nom, Prenom, DateNaissance
 # Identité + Lieux
 Prenom, VilleHabitation
 Nom, VilleHabitation
-Prenom, Departement
+Prenom, DeptNaissance
 
 # Famille (Si dispo)
 Enfant1Prenom, Enfant1DateNaissance
 ConjointPrenom, DateMariage
 
 # Passions
-Sportif, Numero
-AnimalNom, AnimalDate
+AnimalNom, AnimalDateNaissance
