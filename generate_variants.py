@@ -42,7 +42,7 @@ def obtenir_mois_texte(mois_int):
 
 def parser_date(date_str):
     """Essaie de convertir une chaîne en objet datetime."""
-    formats = ["%d/%m/%Y", "%Y", "%d-%m-%Y", "%d.%m.%Y"]
+    formats = ["%d/%m/%Y", "%Y", "%d-%m-%Y", "%d.%m.%Y", "%Y-%m-%d"] 
     for fmt in formats:
         try:
             return datetime.strptime(date_str, fmt)
@@ -168,6 +168,10 @@ def generer_toutes_variantes(valeur, config):
         # On mixe le mois chiffre ET les mois textes
         toutes_formes_mois = [f"{date_obj.month:02d}"] + obtenir_mois_texte(date_obj.month)
 
+        # Structures indépendantes du mois (Année seule)
+        bases.add(str(date_obj.year))
+        bases.add(date_obj.strftime("%y"))
+
         for m_courant in toutes_formes_mois:
             structures_dates = [
                 [j, m_courant, a],       # 25 08 1995
@@ -175,11 +179,7 @@ def generer_toutes_variantes(valeur, config):
                 [a, m_courant, j],       # 1995 08 25
                 [a_court, m_courant, j], # 95 08 25
                 [j, m_courant],          # 25 08
-                [m_courant, j],          # 08 25
-                
-                # Permet de générer "Pierre1995" avec le pattern Prenom, DateNaissance
-                [a],       # 1995
-                [a_court]  # 95
+                [m_courant, j]          # 08 25
             ]
             for structure in structures_dates:
                 for sep in separateurs:

@@ -1,13 +1,29 @@
 import time
 import itertools
+import os
+import shutil
+import sys
 
 import data_loader
 import generate_variants
 import generate_patterns
 import cli
 
+# --- CONFIGURATION ---
+NUM_PARTITIONS = 64
+TEMP_DIR = "temp_shards"
+BUFFER_SIZE = 1024 * 1024 * 64  # Buffer d'écriture de 64 Mo
+
+def nettoyer_dossier_temp():
+    if os.path.exists(TEMP_DIR):
+        try:
+            shutil.rmtree(TEMP_DIR)
+        except OSError:
+            pass
+    os.makedirs(TEMP_DIR, exist_ok=True)
+
 def main():
-    # --- 1. CONFIGURATION ---
+    # 1. CONFIG
     args = cli.configurer_arguments()
     config = {
         "SEPARATEURS_PATTERN": ["", ".", "-", "_"],
@@ -20,7 +36,7 @@ def main():
     if args.verbose:
         print(f"[*] Configuration chargée. Source: {args.source}")
 
-    # --- 2. CHARGEMENT ---
+    # 2. CHARGEMENT
     infos_brutes = data_loader.charger_infos_json(args.source)
     structures = generate_patterns.charger_structures_patterns(args.patterns)
 
@@ -28,95 +44,118 @@ def main():
         print("[!] Erreur chargement fichiers.")
         return
 
-    # --- 3. GÉNÉRATION POOL ---
-    if args.verbose: print("--- Génération des variantes ---")
+    # 3. GENERATION POOL
     pool_donnees = {}
     for cle, valeur in infos_brutes.items():
         pool_donnees[cle] = generate_variants.generer_toutes_variantes(valeur, config)
 
-    # --- 4. CALCUL PRÉVISIONNEL ---
+    # 4. CALCUL
     separateurs = config["SEPARATEURS_PATTERN"]
     total_theorique = cli.calculer_total_combinaisons(structures, pool_donnees, len(separateurs))
 
-    # --- 5. AFFICHAGE DU RÉSUMÉ ---
-    if args.simulation or args.verbose:
-        print("--- RÉSUMÉ AVANT GÉNÉRATION ---")
+    if args.simulation:
+        cli.afficher_resume(args, total_theorique, len(structures))
+        return
+
+    if args.verbose:
         cli.afficher_resume(args, total_theorique, len(structures))
 
-    if args.simulation:
+    # --- 5. EXÉCUTION (PHASE 1 : SHARDING) ---
+    start_time = time.time()
+    compteur_genere = 0
+    nettoyer_dossier_temp()
+
+    handles = []
+    try:
+        for i in range(NUM_PARTITIONS):
+            f = open(os.path.join(TEMP_DIR, f"part_{i}.txt"), "w", encoding="utf-8", buffering=BUFFER_SIZE)
+            handles.append(f)
+    except OSError as e:
+        print(f"[ERREUR] Création fichiers temp: {e}")
         return
 
-    # --- 6. EXÉCUTION RÉELLE (OPTIMISÉE) ---
     if args.verbose:
-        cli.afficher_barre_progression(0, total_theorique, time.time())
-    
-    compteur_ecrit = 0
-    compteur_teste = 0
-    start_time = time.time()
-    
-    # [OPTIMISATION 1] Le Set pour les doublons (Mémoire)
-    deja_vus = set()
-    
-    # [OPTIMISATION 2] Le Buffer pour l'écriture (Vitesse)
-    buffer_ecriture = []
-    TAILLE_BUFFER = 100000  # On écrit par blocs de 100 000 lignes
+        print(f"[*] Phase 1 : Générations des mdp...")
+        cli.afficher_barre_progression(0, total_theorique, start_time)
 
     try:
-        with open(args.output, "w", encoding="utf-8") as f:
-            for structure in structures:
-                if not all(key in pool_donnees for key in structure):
-                    continue
-
-                listes_blocs = [pool_donnees[key] for key in structure]
-
-                for combinaison in itertools.product(*listes_blocs):
-                    for sep in separateurs:
-                        mdp = sep.join(combinaison)
-                        compteur_teste += 1
-                        
-                        # LOGIQUE ANTI-DOUBLON
-                        if mdp not in deja_vus:
-                            deja_vus.add(mdp)
-                            
-                            # [OPTIMISATION 3] Au lieu d'écrire tout de suite, on met dans le buffer
-                            buffer_ecriture.append(mdp)
-                            compteur_ecrit += 1
-
-                            # Si le buffer est plein, on le vide dans le fichier d'un coup
-                            if len(buffer_ecriture) >= TAILLE_BUFFER:
-                                f.write("\n".join(buffer_ecriture) + "\n")
-                                buffer_ecriture = []  # On vide le buffer
-
-                        # Mise à jour barre de progression (fréquence réduite pour perf)
-                        if args.verbose and compteur_teste % 10000 == 0:
-                            cli.afficher_barre_progression(compteur_teste, total_theorique, start_time)
+        for structure in structures:
+            if not all(key in pool_donnees for key in structure):
+                continue
             
-            # [OPTIMISATION 4] IMPORTANT : Écrire ce qui reste dans le buffer à la toute fin
-            if buffer_ecriture:
-                f.write("\n".join(buffer_ecriture) + "\n")
+            listes_blocs = [pool_donnees[key] for key in structure]
+            for combinaison in itertools.product(*listes_blocs):
+                for sep in separateurs:
+                    mdp = sep.join(combinaison)
+                    compteur_genere += 1
+                    
+                    bucket_id = hash(mdp) % NUM_PARTITIONS
+                    handles[bucket_id].write(mdp + "\n")
 
-    except IOError as e:
-        print(f"\n[ERREUR] Ecriture : {e}")
-        return
-    except MemoryError:
-        print(f"\n[ERREUR FATALE] Trop de RAM utilisée ! Le fichier contient {compteur_ecrit} mdp.")
-        return
+                    if args.verbose and compteur_genere % 50000 == 0:
+                        cli.afficher_barre_progression(compteur_genere, total_theorique, start_time)
 
-    # Affichage final
+    except KeyboardInterrupt:
+        print("\n[!] Interruption.")
+        for h in handles: h.close()
+        shutil.rmtree(TEMP_DIR)
+        return
+    finally:
+        for h in handles: h.close()
+
     if args.verbose:
         cli.afficher_barre_progression(total_theorique, total_theorique, start_time)
-        elapsed = time.time() - start_time
+        print(f"\n[*] Phase 2 : Fusion des fichiers temporaires...")
+
+    # --- 6. EXÉCUTION (PHASE 2 : FUSION AVEC BARRE DE PROGRESSION) ---
+    compteur_unique = 0
+    start_time_phase2 = time.time() # Timer spécifique pour la phase 2
+    
+    try:
+        with open(args.output, "w", encoding="utf-8", buffering=BUFFER_SIZE) as f_out:
+            for i in range(NUM_PARTITIONS):
+                part_path = os.path.join(TEMP_DIR, f"part_{i}.txt")
+                
+                try:
+                    if os.path.getsize(part_path) == 0:
+                        # On met à jour la barre même si le fichier est vide
+                        if args.verbose:
+                            cli.afficher_barre_progression(i + 1, NUM_PARTITIONS, start_time_phase2, unite="files")
+                        continue
+                except OSError:
+                    continue
+                
+                with open(part_path, "r", encoding="utf-8") as f_in:
+                    # Lecture optimisée (garde les \n)
+                    lignes_uniques = set(f_in)
+                
+                f_out.writelines(lignes_uniques)
+                compteur_unique += len(lignes_uniques)
+                
+                del lignes_uniques
+
+                # [NOUVEAU] Mise à jour de la barre de progression (fichiers traités)
+                if args.verbose:
+                    cli.afficher_barre_progression(i + 1, NUM_PARTITIONS, start_time_phase2, unite="files")
+
+    except IOError as e:
+        print(f"[ERREUR] Écriture finale : {e}")
+    finally:
+        if os.path.exists(TEMP_DIR):
+            shutil.rmtree(TEMP_DIR)
+
+    # --- STATISTIQUES ---
+    elapsed = time.time() - start_time
+    if args.verbose:
+        doublons = compteur_genere - compteur_unique
+        # On force un saut de ligne car la dernière barre de progression n'en a pas fait
         print(f"\n\n--- TERMINÉ en {elapsed:.2f}s ---")
-        
-        doublons = compteur_teste - compteur_ecrit
         print(f"Statistiques :")
-        print(f" - Mots de passe uniques écrits : {compteur_ecrit:_}".replace("_", " "))
-        print(f" - Doublons évités             : {doublons:_}".replace("_", " "))
-
+        print(f" - Mots de passe générés   : {compteur_genere:_}".replace("_", " "))
+        print(f" - Mots de passe uniques   : {compteur_unique:_}".replace("_", " "))
+        print(f" - Doublons éliminés       : {doublons:_}".replace("_", " "))
     else:
-        total_str = f"{compteur_ecrit:_}".replace("_", " ")
-        print(f"Terminé : {total_str} mdp générés (Doublons retirés).")
-
+        print(f"Terminé : {compteur_unique} mdp générés.")
 
 if __name__ == "__main__":
     main()

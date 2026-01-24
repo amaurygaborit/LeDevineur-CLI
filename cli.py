@@ -64,7 +64,6 @@ def afficher_resume(args, total, nb_patterns):
     """
     Affiche le bloc d'informations (utilisé pour Simulation ET Verbose).
     """
-    # Formatage : 1000000 -> "1 000 000"
     total_str = f"{total:_}".replace("_", " ")
 
     print(f"[*] Configuration : Leet={args.niveau_leet}, MaxCasse={args.max_casse}")
@@ -74,9 +73,10 @@ def afficher_resume(args, total, nb_patterns):
     print("------------------------------------------------")
 
 
-def afficher_barre_progression(actuel, total, start_time, taille_barre=30):
+def afficher_barre_progression(actuel, total, start_time, taille_barre=30, unite="mdp"):
     """
     Affiche la barre de chargement avec vitesse et temps restant.
+    [NOUVEAU] Le paramètre 'unite' permet de changer l'affichage (ex: 'fichiers' au lieu de 'mdp')
     """
     if total == 0: return
 
@@ -96,9 +96,9 @@ def afficher_barre_progression(actuel, total, start_time, taille_barre=30):
         else:
             temps_str = "?"
 
-        # On formate aussi la vitesse (ex: 15 000 mdp/s)
+        # On formate aussi la vitesse 
         vitesse_str = f"{int(vitesse):_}".replace("_", " ")
-        infos_sup = f"[{vitesse_str} mdp/s | Reste: {temps_str}]"
+        infos_sup = f"[{vitesse_str} {unite}/s | Reste: {temps_str}]"
 
     # On formate le compteur actuel et total (ex: 1 500 / 3 000)
     actuel_str = f"{actuel:_}".replace("_", " ")
