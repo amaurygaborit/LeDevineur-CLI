@@ -9,7 +9,7 @@
 </p>
 
 <blockquote>
-  <p>⚡ <strong>Performance :</strong> Doté d'une architecture par partitionnement (sharding), il est capable de générer des millions de mots de passe uniques avec une utilisation minimale de la mémoire vive.</p>
+  <p>⚡ <strong>Performance :</strong> Doté d'une architecture par partitionnement, il est capable de générer des millions de mots de passe uniques avec une utilisation minimale de la mémoire vive.</p>
 </blockquote>
 
 <hr>
@@ -73,9 +73,6 @@ AnimalNom, DeptNaissance</code></pre>
 <p>Génère le dictionnaire avec les paramètres par défaut (Leet niveau 1, Max 3 substitutions).</p>
 <pre><code>python main.py --verbose</code></pre>
 <p><em>Le résultat sera enregistré dans <code>dictionnaire.txt</code>.</em></p>
-
-<h3>3. Génération Avancée</h3>
-<pre><code>python main.py --niveau-leet 2 --max-leet 5 --max-casse 4 -v</code></pre>
 
 <h3>📖 Tableau des Arguments</h3>
 <table border="1">
