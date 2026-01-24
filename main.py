@@ -11,7 +11,7 @@ import cli
 
 # --- CONFIGURATION ---
 NUM_PARTITIONS = 64
-TEMP_DIR = "temp_shards"
+TEMP_DIR = "temp_mdp"
 BUFFER_SIZE = 1024 * 1024 * 64  # Buffer d'écriture de 64 Mo
 
 def nettoyer_dossier_temp():
