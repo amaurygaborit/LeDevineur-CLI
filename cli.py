@@ -22,7 +22,8 @@ def configurer_arguments():
 
     # Paramètres de complexité
     group_gen = parser.add_argument_group('Génération')
-    group_gen.add_argument("--niveau-leet", type=int, choices=[1, 2], default=1, help="Niveau Leet Speak")
+    group_gen.add_argument("--niveau-leet", type=int, choices=[1, 2, 3], default=1,
+                           help="Niveau de Leet Speak (1=Basique, 2=Medium, 3=Hardcore). Défaut: 1")
     group_gen.add_argument("--max-leet", type=int, default=3, help="Max substitutions par mot")
     group_gen.add_argument("--max-casse", type=int, default=3, help="Max variations de casse")
 
