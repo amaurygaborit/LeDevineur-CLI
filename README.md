@@ -21,7 +21,7 @@
   <li><strong>Gestion Avancée des Dates :</strong> Détecte automatiquement les formats de dates et génère toutes les variantes (25081995, 250895, 1995, 95...).</li>
   <li><strong>Transformations Intelligentes :</strong>
     <ul>
-      <li><strong>Leet Speak :</strong> 2 niveaux de complexité (Basique <code>e=3</code> / Avancé <code>t=7</code>).</li>
+      <li><strong>Leet Speak :</strong> 3 niveaux de complexité (Basique <code>e=3</code>, Symboles <code>a=@</code>, Hardcore <code>k=|<</code>).</li>
       <li><strong>Casse Contrôlée :</strong> Injection de majuscules aléatoires sans explosion combinatoire.</li>
     </ul>
   </li>
