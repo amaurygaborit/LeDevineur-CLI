@@ -63,7 +63,7 @@ AnimalNom, DeptNaissance</code></pre>
 
 <hr>
 
-<h2>💻 Utilisation (CLI)</h2>
+<h2>Utilisation (CLI)</h2>
 
 <h3>1. Mode Simulation (Recommandé)</h3>
 <p>Voir combien de mots de passe seraient générés <strong>sans</strong> créer le fichier.</p>
@@ -74,7 +74,7 @@ AnimalNom, DeptNaissance</code></pre>
 <pre><code>python main.py --verbose</code></pre>
 <p><em>Le résultat sera enregistré dans <code>dictionnaire.txt</code>.</em></p>
 
-<h3>📖 Tableau des Arguments</h3>
+<h3>Tableau des Arguments</h3>
 <table border="1">
   <thead>
     <tr>
@@ -86,42 +86,47 @@ AnimalNom, DeptNaissance</code></pre>
   <tbody>
     <tr>
       <td><code>-h, --help</code></td>
-      <td>Affiche l'aide complète.</td>
+      <td>Affiche l'aide complète et quitte.</td>
       <td>-</td>
     </tr>
     <tr>
       <td><code>-s, --source</code></td>
-      <td>Chemin du fichier JSON source.</td>
+      <td>Chemin du fichier contenant les données de la cible (JSON).</td>
       <td>infos.json</td>
     </tr>
     <tr>
       <td><code>-p, --patterns</code></td>
-      <td>Chemin du fichier de structures.</td>
+      <td>Chemin du fichier définissant les modèles de mots de passe.</td>
       <td>patterns.txt</td>
     </tr>
     <tr>
       <td><code>-o, --output</code></td>
-      <td>Chemin du fichier de sortie.</td>
+      <td>Chemin du fichier dictionnaire généré.</td>
       <td>dictionnaire.txt</td>
     </tr>
     <tr>
       <td><code>-v, --verbose</code></td>
-      <td>Affiche les barres de progression.</td>
+      <td>Active l'affichage détaillé (barres de progression, stats).</td>
       <td>Désactivé</td>
     </tr>
     <tr>
       <td><code>-S, --simulation</code></td>
-      <td>Simule le calcul sans écrire.</td>
+      <td>Mode "Test" : Calcule le volume sans écrire le fichier.</td>
       <td>Désactivé</td>
     </tr>
     <tr>
       <td><code>--niveau-leet</code></td>
-      <td>1 (Simple) ou 2 (Complexe).</td>
+      <td><strong>Le type</strong> de substitution :<br>1 = Chiffres (a=4)<br>2 = Symboles (a=@)<br>3 = Complexe (a=^)</td>
       <td>1</td>
     </tr>
     <tr>
       <td><code>--max-leet</code></td>
-      <td>Max substitutions par mot.</td>
+      <td><strong>La quantité</strong> : Nombre maximum de caractères transformés par mot. (Évite de rendre le mot illisible).</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <td><code>--max-casse</code></td>
+      <td><strong>Le style</strong> : Nombre maximum de majuscules injectées aléatoirement (ex: <code>maIsOn</code> = 2).</td>
       <td>3</td>
     </tr>
   </tbody>
@@ -129,7 +134,7 @@ AnimalNom, DeptNaissance</code></pre>
 
 <hr>
 
-<h2>🏗 Architecture Technique</h2>
+<h2>Architecture Technique</h2>
 <ol>
   <li><strong>Pool de Variantes :</strong> Transformation des données JSON en variantes (Casse + Leet) en mémoire.</li>
   <li><strong>Partitionnement :</strong> Distribution des combinaisons dans 64 fichiers temporaires basés sur leur Hash (évite la saturation RAM).</li>
@@ -138,7 +143,7 @@ AnimalNom, DeptNaissance</code></pre>
 
 <hr>
 
-<h2>👥 Auteurs</h2>
+<h2>Auteurs</h2>
 <p>Projet réalisé dans le cadre du cursus ingénieur 4A (Polytech Dijon).</p>
 <ul>
   <li><strong>Robin RUSSIER</strong></li>
